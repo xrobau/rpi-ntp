@@ -1,0 +1,22 @@
+---
+- name: Install default ssh keys
+  authorized_key:
+    user: root
+    state: present
+    exclusive: True
+    key: "{{ sshkeys | join('\n') | string }}"
+  tags: ssh
+
+- name: Disable empty password login
+  lineinfile: dest=/etc/ssh/sshd_config regexp="^#?PermitEmptyPasswords" line="PermitEmptyPasswords no"
+  notify: restart-sshd
+
+- name: Disable password login
+  lineinfile: dest=/etc/ssh/sshd_config regexp="^(#\s*)?PasswordAuthentication " line="PasswordAuthentication no"
+  notify: restart-sshd
+
+- name: Activate keepalive if needed
+  lineinfile: dest=/etc/ssh/sshd_config regexp="^(#\s*)?ClientAliveInterval " line="ClientAliveInterval = 60"
+  when: sshkeepalive is defined
+  notify: restart-sshd
+

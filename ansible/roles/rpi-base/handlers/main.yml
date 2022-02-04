@@ -1,0 +1,11 @@
+---
+- name: systemctl-reload
+  command: systemctl daemon-reload
+
+- name: restart-sshd
+  service: name=sshd state=restarted
+
+- name: sysctl-reload
+  command: sysctl --system
+  ignore_errors: yes
+

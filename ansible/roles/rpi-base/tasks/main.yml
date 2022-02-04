@@ -1,0 +1,135 @@
+---
+- name: Remove unneeded services
+  apt:
+    name:
+      - needrestart
+      - snapd
+      - cloud-init
+    state: absent
+    purge: yes
+    autoremove: yes
+
+- name: Install base packages that are not present on minimized systems
+  apt:
+    name:
+      - vim
+      - iputils-ping
+      - jq
+    state: present
+
+
+- name: Change hostname if needed
+  hostname:
+    name: "{{ hostname }}"
+  when: hostname is defined
+  tags: hostname
+
+- name: Update /etc/hosts if needed
+  template: src=hosts dest=/etc/hosts
+  when: hostname is defined
+  tags: hostname
+
+- name: Fix default editor
+  alternatives:
+    name: editor
+    path: /usr/bin/vim.basic
+  tags:
+    - editor
+
+- name: Turn off paste blocking
+  lineinfile:
+    path: /etc/bash.bashrc
+    line: bind 'set enable-bracketed-paste off'
+    create: yes
+
+- name: Hard-code editor
+  lineinfile:
+    path: /etc/bash.bashrc
+    line: export EDITOR=vim
+    create: yes
+
+- name: Hard-code visual
+  lineinfile:
+    path: /etc/bash.bashrc
+    line: export VISUAL=vim
+    create: yes
+
+- name: Put our /etc/sysctl.d files in place
+  copy:
+    src: "{{ item }}"
+    dest: /etc/sysctl.d/
+  with_items:
+    - 10-keepalives.conf
+  notify: sysctl-reload
+  tags:
+    - sysctl
+
+- meta: flush_handlers
+  tags:
+    - net
+    - sysctl
+
+- name: Create default ssh config
+  copy:
+    src: sshconfig
+    dest: /root/.ssh/config
+    force: no
+  tags:
+    - ssh
+
+- name: Set system start timeout to 30s
+  lineinfile:
+    path: /etc/systemd/system.conf
+    regex: '^#?DefaultTimeoutStartSec='
+    line: DefaultTimeoutStartSec=30s
+  tags:
+    - systemd
+  notify:
+    - systemctl-reload
+
+- name: Set system stop timeout to 30s
+  lineinfile:
+    path: /etc/systemd/system.conf
+    regex: '^#?DefaultTimeoutStopSec='
+    line: DefaultTimeoutStopSec=30s
+  tags:
+    - systemd
+  notify:
+    - systemctl-reload
+
+- name: Never hang waiting for network connections
+  systemd:
+    name: systemd-networkd-wait-online.service
+    state: stopped
+    enabled: no
+    masked: yes
+  tags:
+    - systemd
+
+- name: Is resolv.conf a symlink?
+  stat:
+    path: /etc/resolv.conf
+  register: rconf
+  tags:
+    - dns
+
+- debug: var=rconf
+  tags:
+    - dns
+
+- name: Delete symlink
+  file:
+    state: absent
+    path: /etc/resolv.conf
+  when: rconf.stat.islnk
+  tags:
+    - dns
+
+- name: Create valid /etc/resolv.conf
+  template:
+    src: resolv.conf
+    dest: /etc/resolv.conf
+  when: forcedns is defined or rconf.stat.islnk
+  tags:
+    - dns
+

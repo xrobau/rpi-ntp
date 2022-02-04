@@ -1,0 +1,7 @@
+# Bootstrap this device, set sane defaults
+---
+- hosts: localhost
+  roles:
+    - rpi-base
+
+
