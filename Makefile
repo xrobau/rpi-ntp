@@ -1,9 +1,9 @@
 
 .PHONY: setup
-setup: packages udev gpsd
+setup: packages udev gpsd ntpd /etc/ansible.hostname
        
 .PHONY: packages
-packages: /usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck
+packages: /usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck /usr/sbin/ntpd
 
 .PHONY: wireguard
 wireguard: /etc/wireguard/wg0.conf
@@ -17,6 +17,13 @@ udev: /etc/udev/rules.d/09.pps.rules
 .PHONY: gpsd
 gpsd: /usr/sbin/gpsd /etc/default/gpsd
 
+.PHONY: ntpd
+ntpd: /etc/ntp.conf
+
+/etc/ntp.conf: ntp.conf
+	cp $< $@
+	systemctl restart ntp
+
 /etc/default/gpsd: defaults.gpsd
 	cp $< $@
 
@@ -26,7 +33,8 @@ gpsd: /usr/sbin/gpsd /etc/default/gpsd
 /etc/hosts: /etc/ansible.hostname
 	cd ansible && ansible-playbook localhost.yml -e hostname=$(shell cat /etc/ansible.hostname)
 
-/etc/ansible.hostname:
+.PHONY: force-hostname
+force-hostname /etc/ansible.hostname:
 	@C=$(shell hostname); echo "Current hostname '$$C'"; read -p "Set hostname (blank to not change): " h; \
 	if [ "$$h" ]; then \
 		echo $$h > /etc/ansible.hostname; \
@@ -51,4 +59,7 @@ gpsd: /usr/sbin/gpsd /etc/default/gpsd
 
 /usr/sbin/gpsd:
 	apt-get -y install gpsd gpsd-tools gpsd-clients
+
+/usr/sbin/ntpd:
+	apt-get -y install ntp ntpdate ntpstat
 
