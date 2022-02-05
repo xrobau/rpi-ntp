@@ -2,7 +2,7 @@
 SHELL=/bin/bash
 
 .PHONY: setup
-setup: packages udev gpsd ntpd /etc/hosts /boot/cmdline.fix
+setup: packages udev gpsd ntpd /etc/hosts /boot/cmdline.txt
        
 .PHONY: packages
 packages: /usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck /usr/sbin/ntpd /usr/bin/vim
@@ -58,7 +58,7 @@ region-reconf .conf.region:
 	@cp /boot/cmdline.txt $@
 
 /boot/config.txt: /boot/config.orig
-	if ! grep -q "RPI NTP" /boot/config.txt; then \
+	@if ! grep -q "RPI NTP" /boot/config.txt; then \
 		cat config.append.txt >> /boot/config.txt; \
 		systemctl disable hciuart.service; \
 	fi
