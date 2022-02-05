@@ -1,9 +1,11 @@
+# Sigh, debian
+SHELL=/bin/bash
 
 .PHONY: setup
-setup: packages udev gpsd ntpd /etc/ansible.hostname
+setup: packages udev gpsd ntpd /etc/hosts /boot/cmdline.fix
        
 .PHONY: packages
-packages: /usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck /usr/sbin/ntpd
+packages: /usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck /usr/sbin/ntpd /usr/bin/vim
 
 .PHONY: wireguard
 wireguard: /etc/wireguard/wg0.conf
@@ -24,6 +26,22 @@ ntpd: /etc/ntp.conf
 	cp $< $@
 	systemctl restart ntp
 
+POOL=2.$(shell cat .conf.region).pool.ntp.org
+ntp.conf: .conf.region conf/ntp.conf
+	@echo -e "\nChecking $(POOL)"
+	@host $(POOL) || ( rm -f .conf.region; exit 1)
+	@sed 's/__POOL__/$(POOL)/' < conf/ntp.conf > $@
+
+ntp-reconf: region-reconf /etc/ntp.conf
+
+.PHONY: region-reconf
+region-reconf .conf.region:
+	@read -n3 -p "Enter your two letter country code [AU] " rconf && if [ "$$rconf" ]; then \
+	       	echo $$rconf > .conf.region ; \
+	else \
+		echo AU > .conf.region; \
+	fi
+
 /etc/default/gpsd: defaults.gpsd
 	cp $< $@
 
@@ -32,6 +50,22 @@ ntpd: /etc/ntp.conf
 
 /etc/hosts: /etc/ansible.hostname
 	cd ansible && ansible-playbook localhost.yml -e hostname=$(shell cat /etc/ansible.hostname)
+
+/boot/cmdline.txt: /boot/cmdline.fix
+	@sed -r 's/console=ser[^ ]+ //' < $< > $@
+
+/boot/cmdline.fix:
+	@cp /boot/cmdline.txt $@
+
+/boot/config.txt: /boot/config.orig
+	if ! grep -q "RPI NTP" /boot/config.txt; then \
+		cat config.append.txt >> /boot/config.txt; \
+		systemctl disable hciuart.service; \
+	fi
+		
+/boot/config.orig:
+	@cp /boot/config.txt $@
+
 
 .PHONY: force-hostname
 force-hostname /etc/ansible.hostname:
@@ -54,8 +88,8 @@ force-hostname /etc/ansible.hostname:
 /etc/wireguard/public.key: /etc/wireguard/private.key
 	wg pubkey < $< > $@
 
-/usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck:
-	apt-get -y install ansible wireguard pps-tools
+/usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck /usr/bin/vim:
+	apt-get -y install ansible wireguard pps-tools vim
 
 /usr/sbin/gpsd:
 	apt-get -y install gpsd gpsd-tools gpsd-clients

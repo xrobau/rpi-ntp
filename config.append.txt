@@ -1,0 +1,16 @@
+# RPI NTP configuration.
+# Delete everything after the line above to return to defaults.
+
+# See /boot/overlays/README for documentation 
+
+# Disable bluetooth which uses pins 14 and 15, returning
+# them for use by ttyAMA0
+dtoverlay=disable-bt
+
+# Enable PPS on GPIO Pin 24. 
+#
+# Note that gpiopin 24 is actual PHYSICAL PIN 18. And
+# to make things more confusing, physical pin 18 is
+# gpio pin 24.
+dtoverlay=pps-gpio,gpiopin=24
+

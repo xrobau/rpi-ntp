@@ -113,10 +113,6 @@
   tags:
     - dns
 
-- debug: var=rconf
-  tags:
-    - dns
-
 - name: Delete symlink
   file:
     state: absent
