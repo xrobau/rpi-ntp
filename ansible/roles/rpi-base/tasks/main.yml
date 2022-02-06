@@ -17,7 +17,6 @@
       - jq
     state: present
 
-
 - name: Change hostname if needed
   hostname:
     name: "{{ hostname }}"
@@ -53,6 +52,12 @@
     path: /etc/bash.bashrc
     line: export VISUAL=vim
     create: yes
+
+- name: Underp vim
+  copy:
+    src: vimrc
+    dest: /root/.vimrc
+    force: no
 
 - name: Put our /etc/sysctl.d files in place
   copy:

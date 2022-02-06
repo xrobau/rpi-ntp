@@ -2,7 +2,7 @@
 SHELL=/bin/bash
 
 .PHONY: setup
-setup: packages udev gpsd ntpd /etc/hosts /boot/cmdline.txt
+setup: packages udev gpsd ntpsec /etc/hosts /boot/cmdline.txt
        
 .PHONY: packages
 packages: /usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck /usr/sbin/ntpd /usr/bin/vim
@@ -20,11 +20,11 @@ udev: /etc/udev/rules.d/09.pps.rules
 gpsd: /usr/sbin/gpsd /etc/default/gpsd
 
 .PHONY: ntpd
-ntpd: /etc/ntp.conf
+ntpd: /etc/ntpsec/ntp.conf
 
-/etc/ntp.conf: ntp.conf
+/etc/ntpsec/ntp.conf: ntp.conf
 	cp $< $@
-	systemctl restart ntp
+	systemctl restart ntpsec
 
 POOL=2.$(shell cat .conf.region).pool.ntp.org
 ntp.conf: .conf.region conf/ntp.conf
@@ -52,7 +52,7 @@ region-reconf .conf.region:
 	cd ansible && ansible-playbook localhost.yml -e hostname=$(shell cat /etc/ansible.hostname)
 
 /boot/cmdline.txt: /boot/cmdline.fix
-	@sed -r 's/console=ser[^ ]+ //' < $< > $@
+	@sed -r -e 's/console=ser[^ ]+ //' -e 's/rootwait$/rootwait nohz=off elevator=dealine smsc95xx.turbo_mode=N/' < $< > $@
 
 /boot/cmdline.fix:
 	@cp /boot/cmdline.txt $@
@@ -95,5 +95,5 @@ force-hostname /etc/ansible.hostname:
 	apt-get -y install gpsd gpsd-tools gpsd-clients
 
 /usr/sbin/ntpd:
-	apt-get -y install ntp ntpdate ntpstat
+	apt-get -y install ntpsec ntpstat
 
