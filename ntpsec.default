@@ -1,0 +1,10 @@
+# This allows a large initial change on startup
+NTPD_OPTS="-g -N -G"
+
+# Set to "yes" to ignore DHCP servers returned by DHCP.
+IGNORE_DHCP=""
+
+# If you use certbot to obtain a certificate for ntpd, provide its name here.
+# The ntpsec deploy hook for certbot will handle copying and permissioning the
+# certificate and key files.
+NTPSEC_CERTBOT_CERT_NAME=""

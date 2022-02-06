@@ -19,8 +19,14 @@ udev: /etc/udev/rules.d/09.pps.rules
 .PHONY: gpsd
 gpsd: /usr/sbin/gpsd /etc/default/gpsd
 
-.PHONY: ntpd
-ntpd: /etc/ntpsec/ntp.conf
+.PHONY: ntpsec ntp
+ntp ntpsec: /etc/ntpsec/ntp.conf /var/log/ntpsec /etc/default/ntpsec
+
+/var/log/ntpsec:
+	@mkdir $@ && chown ntpsec:ntpsec $@
+
+/etc/default/ntpsec: ntpsec.default
+	cp $< $@
 
 /etc/ntpsec/ntp.conf: ntp.conf
 	cp $< $@
