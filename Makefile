@@ -48,7 +48,8 @@ region-reconf .conf.region:
 /etc/udev/rules.d/09.pps.rules: pps.rules
 	cp $< $@
 
-/etc/hosts: /etc/ansible.hostname
+.PHONY: ansible
+ansible /etc/hosts: /etc/ansible.hostname
 	cd ansible && ansible-playbook localhost.yml -e hostname=$(shell cat /etc/ansible.hostname)
 
 /boot/cmdline.txt: /boot/cmdline.fix

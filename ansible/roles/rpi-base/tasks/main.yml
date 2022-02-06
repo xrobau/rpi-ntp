@@ -13,8 +13,10 @@
   apt:
     name:
       - vim
+      - vim-scripts
       - iputils-ping
       - jq
+      - setserial
     state: present
 
 - name: Change hostname if needed
@@ -34,6 +36,14 @@
     path: /usr/bin/vim.basic
   tags:
     - editor
+
+- name: rc.local
+  copy:
+    src: rc.local
+    dest: /etc/rc.local
+    owner: root
+    group: root
+    mode: 0755
 
 - name: Turn off paste blocking
   lineinfile:
