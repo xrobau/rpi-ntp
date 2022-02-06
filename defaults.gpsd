@@ -2,6 +2,6 @@
 # 2022-02-05
 START_DAEMON="true"
 USBAUTO="true"
-DEVICES="/dev/gps0 /dev/pps0"
-GPSD_OPTIONS="-n"
+DEVICES="/dev/ttyAMA0"
+GPSD_OPTIONS="-n -r"
 

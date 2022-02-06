@@ -19,6 +19,12 @@
       - setserial
     state: present
 
+- name: Block raspi-config from messing with cpu governor
+  service:
+    name: raspi-config
+    state: stopped
+    enabled: false
+
 - name: Change hostname if needed
   hostname:
     name: "{{ hostname }}"
