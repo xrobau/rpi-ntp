@@ -2,7 +2,7 @@
 SHELL=/bin/bash
 
 .PHONY: setup
-setup: packages udev gpsd ntpsec /etc/hosts /boot/cmdline.txt
+setup: packages udev gpsd ntpsec /etc/hosts /boot/cmdline.txt /boot/config.txt
        
 .PHONY: packages
 packages: /usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck /usr/sbin/ntpd /usr/bin/vim
