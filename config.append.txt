@@ -1,19 +1,39 @@
 # RPI NTP configuration.
 # Delete everything after the line above to return to defaults.
 
-# See /boot/overlays/README for documentation 
+# Note that 'arm_boot=1', if present, was commented out
+# by the NTP installer.
+
+# See /boot/overlays/README for documentation on these.
+
+# CPU Timing. We force everything to 1200MHz (PI3 speeds), as
+# there is no need to overclock this device. We just want a
+# fixed speed, that will not be scaled up and down by power
+# management
+arm_freq=1200
+arm_freq_min=1200
+core_freq_min=1200
+
+# This is headless. Doesn't need GPU RAM
+gpu_mem=16
 
 # Disable bluetooth which uses pins 14 and 15, returning
 # them for use by ttyAMA0
 dtoverlay=disable-bt
-# This doesn't SEEM to be needed, but doesn't hurt.
-enable_uart=1
 
 # Enable PPS on GPIO Pin 18 (physical pin 12)
-# 
 dtoverlay=pps-gpio,gpiopin=18
 
-# Other options are:
+# Other options to pps-gpio are:
 # dtoverlay=pps-gpio,gpiopin=18,assert_falling_edge=on,capture_clear=on
+
+# Depending on your GPS device, you may need to set assert_falling_edge=on,
+# which triggers the PPS event when the PPS line turns OFF, not when it turns
+# ON. If you have a large amount of jitter on your PPS line, you may need to
+# set that, and then add a fudge to your PPS line.
+
+# capture_clear=on is mainly for debugging the above. Turning that on will
+# show you TWO events in ppstest, and you can use that to figure out if
+# some PPS triggers are being missed.
 
 
