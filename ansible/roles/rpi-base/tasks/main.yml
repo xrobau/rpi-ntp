@@ -158,3 +158,9 @@
   tags:
     - dns
 
+- name: Make sure gpsd starts on boot, not on demand
+  service:
+    name: gpsd
+    state: started
+    enabled: true
+

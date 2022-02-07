@@ -1,7 +1,7 @@
 # Sigh, debian
 SHELL=/bin/bash
 
-halp:
+halp: /usr/bin/nc
 	@echo 'Run "make setup" to configure this device.'
 	@echo 'Current config:'
 	@echo "  * CPU Speed $$(cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq) Hz (Should be 1000000)"
@@ -25,7 +25,43 @@ halp:
 		else \
 			echo "  * pps-gpio dtoverlay present as '$$PPSDT'"; \
 		fi \
-	fi
+	fi; \
+	DEVJSON=$$(echo '?DEVICES;' | nc -N localhost 2947 | grep DEVICES); \
+	if [ ! "$$DEVJSON" ]; then \
+		echo "Could not connect to gpsd, no device information"; \
+	else \
+		echo "  * gpsd reports $$(echo $$DEVJSON | jq '.devices | length') devices (should be 1)"; \
+		TYPE=$$(echo $$DEVJSON | jq -r '.devices[0].driver'); \
+		echo "  * gpsd Device 1 is '$$TYPE'"; \
+		if [ "$$TYPE" == "u-blox" ]; then \
+			echo -e "\n**** This is a u-blox device, and can be configured for higher precision ****"; \
+			echo -e "**** run 'make ublox' for more information ****\n"; \
+		fi; \
+	fi; \
+	echo "NTP Stats (from ntpq -crv -pn)"; \
+	ntpq -crv -pn
+
+
+.PHONY: ublox
+ublox:
+	@echo "All u-blox devices can be set to 'Stationary' mode, which makes them"
+	@echo "more accurate (when stationary!). You can configure this with the"
+	@echo "following commands:"
+	@echo "# Reset the u-blox to factory defaults"
+	@echo "ubxtool -p RESET"
+	@echo "# Set the Dynamic Platform Model to 1 (Stationary)"
+	@echo "ubxtool -p MODEL,1"
+	@echo "# Save to RAM, Battery Backup, and Flash"
+	@echo "ubxtool -p SAVE,0"
+	@echo "ubxtool -p SAVE,1"
+	@echo "ubxtool -p SAVE,2"
+	@echo "ubxtool -p SAVE,3"
+	@echo -e "\nAfter making these changes, POWER CYCLE this device, and the"
+	@echo "GPS receiver, to make sure the changes persist."
+	@echo -e "\nYou can get the CURRENT Dynamic model with the following command:"
+	@echo "ubxtool -p CFG-NAV5 | grep dynMod"
+	@echo "Full protocol PDF can be downloaded from https://bit.ly/ublox6"
+
 
 .PHONY: setup
 setup: packages udev gpsd ntpsec /etc/hosts /boot/cmdline.txt /boot/config.txt
@@ -133,3 +169,5 @@ force-hostname /etc/ansible.hostname:
 /usr/sbin/ntpd:
 	apt-get -y install ntpsec ntpstat
 
+/usr/bin/nc:
+	apt-get -y install netcat
