@@ -25,6 +25,14 @@
     state: stopped
     enabled: false
 
+- name: Remove rpi profile annoyances
+  file:
+    state: absent
+    name: "{{ item }}"
+  with_items:
+    - /etc/profile.d/sshpwd.sh
+    - /etc/profile.d/wifi-check.sh
+
 - name: Change hostname if needed
   hostname:
     name: "{{ hostname }}"
