@@ -6,13 +6,13 @@
 
 # See /boot/overlays/README for documentation on these.
 
-# CPU Timing. We force everything to 1200MHz (PI3 speeds), as
+# CPU Timing. We force everything to 1000MHz (PI3 speeds), as
 # there is no need to overclock this device. We just want a
 # fixed speed, that will not be scaled up and down by power
 # management
-arm_freq=1200
-arm_freq_min=1200
-core_freq_min=1200
+arm_freq=1000
+arm_freq_min=1000
+core_freq_min=1000
 
 # This is headless. Doesn't need GPU RAM
 gpu_mem=16
