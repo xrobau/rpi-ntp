@@ -59,7 +59,7 @@ ansible /etc/hosts: /etc/ansible.hostname
 	cd ansible && ansible-playbook localhost.yml -e hostname=$(shell cat /etc/ansible.hostname)
 
 /boot/cmdline.txt: /boot/cmdline.fix
-	@sed -r -e 's/console=ser[^ ]+ //' -e 's/rootwait$/rootwait nohz=off elevator=dealine smsc95xx.turbo_mode=N/' < $< > $@
+	@sed -r -e 's/console=ser[^ ]+ //' -e 's/rootwait$$/rootwait nohz=off elevator=dealine smsc95xx.turbo_mode=N/' < $< > $@
 
 /boot/cmdline.fix:
 	@cp /boot/cmdline.txt $@
