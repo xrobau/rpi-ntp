@@ -11,8 +11,6 @@
 # fixed speed, that will not be scaled up and down by power
 # management
 arm_freq=1000
-arm_freq_min=1000
-core_freq_min=1000
 
 # This is headless. Doesn't need GPU RAM
 gpu_mem=16
