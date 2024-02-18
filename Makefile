@@ -1,7 +1,7 @@
 # Sigh, debian
 SHELL=/bin/bash
 
-halp: /usr/bin/nc
+halp: /usr/bin/nc /usr/sbin/ntpd
 	@echo 'Run "make setup" to configure this device.'
 	@echo 'Current config:'
 	@echo "  * CPU Speed $$(cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq) Hz (Should be 1000000)"
@@ -170,4 +170,4 @@ force-hostname /etc/ansible.hostname:
 	apt-get -y install ntpsec ntpstat
 
 /usr/bin/nc:
-	apt-get -y install netcat
+	apt-get -y install netcat-openbsd
