@@ -124,7 +124,7 @@ ansible /etc/hosts: /etc/ansible.hostname
 # elevator=deadline is for disk IO only, and isn't important, but it can help when
 # you're using slow SD cards.
 $(BOOT)/cmdline.txt: $(BOOT)/cmdline.fix
-	@sed -r -e 's/console=ser[^ ]+ //' -e 's/rootwait$$/rootwait nohz=off elevator=deadline smsc95xx.turbo_mode=N/' < $< > $@
+	@sed -r -e 's/console=ser[^ ]+ //' -e 's/rootwait quiet/rootwait nohz=off elevator=deadline smsc95xx.turbo_mode=N quiet/' < $< > $@
 
 $(BOOT)/cmdline.fix:
 	@cp $(BOOT)/cmdline.txt $@
