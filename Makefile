@@ -1,5 +1,6 @@
 # Sigh, debian
 SHELL=/bin/bash
+BOOT=/boot/firmware
 
 halp: /usr/bin/nc /usr/sbin/ntpd
 	@echo 'Run "make setup" to configure this device.'
@@ -16,12 +17,12 @@ halp: /usr/bin/nc /usr/sbin/ntpd
 	else \
 		echo "  * elevator=deadline IS NOT PRESENT on kernel boot command line"; \
 	fi
-	@if [ ! -e /boot/config.txt ]; then \
-		echo "  * /boot/config.txt does not exist, can't check config"; \
+	@if [ ! -e $(BOOT)/config.txt ]; then \
+		echo "  * $(BOOT)/config.txt does not exist, can't check config"; \
 	else \
-		PPSDT=$$(grep ^dtoverlay=pps-gpio /boot/config.txt); \
+		PPSDT=$$(grep ^dtoverlay=pps-gpio $(BOOT)/config.txt); \
 		if [ ! "$$PPSDT" ]; then \
-			echo "  * pps-gpio overlay not enabled in /boot/config.txt"; \
+			echo "  * pps-gpio overlay not enabled in $(BOOT)/config.txt"; \
 		else \
 			echo "  * pps-gpio dtoverlay present as '$$PPSDT'"; \
 		fi \
@@ -64,10 +65,10 @@ ublox:
 
 
 .PHONY: setup
-setup: packages udev gpsd ntpsec /etc/hosts /boot/cmdline.txt /boot/config.txt
+setup: packages udev gpsd ntpsec /etc/hosts $(BOOT)/cmdline.txt $(BOOT)/config.txt
        
 .PHONY: packages
-packages: /usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck /usr/sbin/ntpd /usr/bin/vim
+packages: /usr/bin/ansible-playbook /usr/bin/wg /usr/bin/ppscheck /usr/sbin/ntpd /usr/bin/vim /usr/bin/host
 
 .PHONY: wireguard
 wireguard: /etc/wireguard/wg0.conf
@@ -122,21 +123,21 @@ ansible /etc/hosts: /etc/ansible.hostname
 
 # elevator=deadline is for disk IO only, and isn't important, but it can help when
 # you're using slow SD cards.
-/boot/cmdline.txt: /boot/cmdline.fix
+$(BOOT)/cmdline.txt: $(BOOT)/cmdline.fix
 	@sed -r -e 's/console=ser[^ ]+ //' -e 's/rootwait$$/rootwait nohz=off elevator=deadline smsc95xx.turbo_mode=N/' < $< > $@
 
-/boot/cmdline.fix:
-	@cp /boot/cmdline.txt $@
+$(BOOT)/cmdline.fix:
+	@cp $(BOOT)/cmdline.txt $@
 
-/boot/config.txt: /boot/config.orig
-	@if ! grep -q "RPI NTP" /boot/config.txt; then \
-		cat config.append.txt >> /boot/config.txt; \
+$(BOOT)/config.txt: $(BOOT)/config.orig
+	@if ! grep -q "RPI NTP" $(BOOT)/config.txt; then \
+		cat config.append.txt >> $(BOOT)/config.txt; \
 		systemctl disable hciuart.service; \
-		sed -i 's/^arm_boost=1/arm_boost=0/' /boot/config.txt; \
+		sed -i 's/^arm_boost=1/arm_boost=0/' $(BOOT)/config.txt; \
 	fi
 		
-/boot/config.orig:
-	@cp /boot/config.txt $@
+$(BOOT)/config.orig:
+	@cp $(BOOT)/config.txt $@
 
 
 .PHONY: force-hostname
@@ -171,3 +172,6 @@ force-hostname /etc/ansible.hostname:
 
 /usr/bin/nc:
 	apt-get -y install netcat-openbsd
+
+/usr/bin/host:
+	apt-get -y install bind9-host
